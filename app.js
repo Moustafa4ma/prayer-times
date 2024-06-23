@@ -60,7 +60,7 @@ async function getLocation(){
 }
 
 async function getDataByCity(){
-    let req=await fetch(`http://api.aladhan.com/v1/timingsByCity?country=EG&city=اسوان`)
+    let req=await fetch(`https://api.aladhan.com/v1/timingsByCity?country=EG&city=اسوان`)
     let res=await req.json()
 }
 
@@ -72,7 +72,7 @@ async function getDataByCoords(){
         errorMsg(loader,"there is a problem in getting the data , please check your internet connction and refresh the page")
     }
     try{
-        let req=await fetch(`http://api.aladhan.com/v1/timings?latitude=${lat}&longitude=${long}`)
+        let req=await fetch(`https://api.aladhan.com/v1/timings?latitude=${lat}&longitude=${long}`)
         let res=await req.json()
         console.log(res)
         displayData(res)
