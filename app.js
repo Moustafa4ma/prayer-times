@@ -26,8 +26,7 @@ const egyptianGovernorates = [
 
   ];
   
-  // This array contains the names of Egyptian governorates in English
-  let lat
+let lat
 let long
 let cityName=document.getElementById("cityName")
 let loader=document.querySelector(".loadingPage")
@@ -36,7 +35,7 @@ let hijriDate=document.getElementById("hijriDate")
 let gregorianDate=document.getElementById("gregorianDate")
 let prayerTextList=document.querySelectorAll(".prayer h3")
 let prayerTime=document.querySelectorAll(".time")
-
+let remainingtime=document.getElementById("remainingtime")
 window.onload=()=>{getDataByCoords()}
 
 
@@ -49,7 +48,7 @@ async function getLocation(){
                 console.log(lat,long)
                 resolve()
             },(error)=>{
-                errorMsg(loader,"can't find your location , please check location permissions and refresh the page") 
+                errorMsg(loader,"can't find your location , please check location permissions , internet connection and refresh the page") 
             })
         }
         else{
@@ -100,9 +99,68 @@ function displayTimings(timingsList){
         prayerTextList[i].innerHTML=prayerList[i]
         prayerTime[i].innerHTML=timingsList[i]
     }
+    focusOnNextPrayer()
 }
 
 
 function errorMsg(container,msg){
-    container.innerHTML+=`<p>${msg}</p>`
+    
+    container.innerHTML=`<p class="loaderError">${msg}</p>`
+}
+
+
+function focusOnNextPrayer(){
+
+    setInterval(()=>{
+        let currentTime=`${new Date().getHours()}:${new Date().getMinutes()}:${new Date().getSeconds()}`
+    let nextPrayer
+    for(time of prayerTime){
+        
+        if(timeToMilisecond(`${time.innerHTML}:00`)>=timeToMilisecond(currentTime)){
+            prayerTime.forEach((time)=>{
+                time.parentElement.classList.remove("nextPrayer")
+            })
+            time.parentElement.classList.add("nextPrayer")
+            nextPrayer=`${time.innerHTML}:00`
+            timeRemainingForNextPrayer(currentTime,nextPrayer)
+            return 0
+        }
+    }
+    },1000)
+    
+    
+
+}
+
+function timeRemainingForNextPrayer(currentTime,nextPrayer){
+    
+    
+    let Totalsec =Math.floor(timeDifference(currentTime,nextPrayer)/1000)
+    let hours=Math.floor(Totalsec/60/60)
+    let minutes=Math.floor((Totalsec%(3600))/60)
+    let seconds=Totalsec%60
+    let formattedTime=timeFormatting(hours,minutes,seconds)
+    remainingtime.innerHTML=formattedTime
+
+}
+
+function timeDifference(startTime,endTime){
+    let difference=timeToMilisecond(endTime)-timeToMilisecond(startTime)
+    return difference
+}
+function timeToMilisecond(time){
+    let [hours,min,sec]=time.split(":")
+    let hoursInMili=hours*60*60*1000
+    let minInMili=min*60*1000
+    let secInMili=sec*1000
+    return hoursInMili+minInMili+secInMili
+}
+
+
+
+function timeFormatting(hours,minutes,seconds){
+    let formattedHours=String(hours).padStart(2,0)
+    let formattedMinutes=String(minutes).padStart(2,0)
+    let formattedSeconds=String(seconds).padStart(2,0)
+    return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`
 }
