@@ -22,21 +22,32 @@ const egyptianGovernorates = [
     "Kafr El Sheikh",
     "Matrouh",
     "Luxor",
-    "Red Sea",
+    "RedSea",
 
   ];
   
 let lat
 let long
 let cityName=document.getElementById("cityName")
-let loader=document.querySelector(".loadingPage")
+let loader=document.getElementById("loadingPage")
 let dayText=document.getElementById("day")
 let hijriDate=document.getElementById("hijriDate")
 let gregorianDate=document.getElementById("gregorianDate")
 let prayerTextList=document.querySelectorAll(".prayer h3")
 let prayerTime=document.querySelectorAll(".time")
 let remainingtime=document.getElementById("remainingtime")
-window.onload=()=>{getDataByCoords()}
+let select=document.getElementById("cities")
+let locationBtn=document.getElementById('locationBtn')
+
+
+window.onload=()=>{
+    createOptions(egyptianGovernorates)
+    getDataByCoords()
+    locationBtn.onclick=()=>{
+        loaderDis("workTrans")
+        getDataByCoords()
+    }
+}
 
 
 async function getLocation(){
@@ -58,9 +69,17 @@ async function getLocation(){
     
 }
 
-async function getDataByCity(){
-    let req=await fetch(`https://api.aladhan.com/v1/timingsByCity?country=EG&city=اسوان`)
-    let res=await req.json()
+async function getDataByCity(city){
+    try{
+        let req=await fetch(`https://api.aladhan.com/v1/timingsByCity?country=EG&city=${city}`)
+        let res=await req.json()
+        console.log(res)
+        displayData(res,city)
+    }
+    catch(error){
+        console.error("can't fetch data",error)
+        errorMsg(loader,"there is a problem in getting the data , please check your internet connction and refresh the page")
+    }
 }
 
 async function getDataByCoords(){
@@ -74,7 +93,7 @@ async function getDataByCoords(){
         let req=await fetch(`https://api.aladhan.com/v1/timings?latitude=${lat}&longitude=${long}`)
         let res=await req.json()
         console.log(res)
-        displayData(res)
+        displayData(res,"unknown")
     }
     catch(error){
         console.error("can't fetch data",error)
@@ -82,9 +101,9 @@ async function getDataByCoords(){
     }
 }
 
-function displayData(res){
-    loader.style.display="none"
-    cityName.innerHTML=res.data.meta.timezone
+function displayData(res,city){
+    cityName.textContent=city
+    loaderDis("delete")
     dayText.innerHTML=res.data.date.gregorian.weekday.en
     const{Fajr:fajr,Sunrise:sunrise,Dhuhr:dhuhr,Asr:asr,Maghrib:maghrib,Isha:isha}=res.data.timings
     let timingsList=[fajr,sunrise,dhuhr,asr,maghrib,isha]
@@ -164,3 +183,34 @@ function timeFormatting(hours,minutes,seconds){
     let formattedSeconds=String(seconds).padStart(2,0)
     return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`
 }
+
+
+function createOptions(options){
+    options.forEach((opt)=>{
+        let option=document.createElement("option")
+        option.innerHTML=opt
+        option.value=opt
+        select.appendChild(option)
+    })
+    select.addEventListener('change',(event)=>{
+        loaderDis("workTrans")
+        getDataByCity(event.target.options[event.target.selectedIndex].value)
+        console.log(event.target.options[event.target.selectedIndex])
+        
+    })
+}
+
+
+function loaderDis(action){
+    if(action=="delete"){
+        loader.className=""
+        loader.style.display="none"
+    }
+    else if(action=="workStart"){
+        loader.className="workStart"
+    }
+    else{
+        loader.className="workTrans"
+    }
+}
+
